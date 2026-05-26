@@ -155,21 +155,18 @@
 <body>
   <article class="markdown-body">
       <h1>Gupshup Account Setup Guide</h1>
-<p>This guide walks you through setting up <strong>Gupshup</strong> as your WhatsApp Business API provider for your project. Gupshup connects your app to WhatsApp through <strong>Meta (Facebook) Business Manager</strong> — you cannot skip the Meta steps.</p>
+<p>This guide walks you through setting up a <strong>Gupshup</strong> account and connecting it to WhatsApp via <strong>Meta (Facebook) Business Manager</strong>. You cannot use Gupshup WhatsApp API without completing the Meta steps.</p>
 <p><strong>Official references</strong></p>
 <ul>
 <li><a href="https://docs.gupshup.io/docs/onboarding-guide">Gupshup onboarding guide</a></li>
 <li><a href="https://docs.gupshup.io/docs/whatsapp-signup-process">Gupshup WhatsApp signup process</a></li>
-<li><a href="https://docs.gupshup.io/docs/set-webhookcallback-url">Set callback URL (webhook)</a></li>
 <li><a href="https://developers.facebook.com/docs/whatsapp">Meta WhatsApp Business Platform docs</a></li>
 </ul>
 <hr>
 <h2>How the pieces fit together</h2>
-<div class="mermaid-container"><div id="mermaid-diagram-0pane5gup" class="mermaid">flowchart LR
+<div class="mermaid-container"><div id="mermaid-diagram-hp0kuoc96" class="mermaid">flowchart LR
   User[End user WhatsApp] --&gt; Meta[Meta WhatsApp Cloud API]
   Meta --&gt; Gupshup[Gupshup BSP]
-  Gupshup --&gt;|Inbound webhook| Backend[Your backend /api/webhook]
-  Backend --&gt;|Outbound API| Gupshup
   Gupshup --&gt; Meta
   Meta --&gt; User
 
@@ -182,10 +179,7 @@
 
   subgraph gupshup_setup [You set up in Gupshup]
     App[Gupshup WhatsApp App]
-    Creds[API key + source + app name]
-    CB[Callback URL]
-    App --&gt; Creds
-    App --&gt; CB
+    App --&gt; Phone
   end
 
   meta_setup --&gt; gupshup_setup</div></div><table>
@@ -213,13 +207,8 @@
 </tr>
 <tr>
 <td><strong>Gupshup app</strong></td>
-<td>Your API app (<code>src.name</code>), API key, webhooks</td>
+<td>Your WhatsApp API app in the Gupshup console</td>
 <td><a href="https://www.gupshup.io/whatsapp/dashboard">Gupshup WhatsApp dashboard</a></td>
-</tr>
-<tr>
-<td><strong>This project</strong></td>
-<td>Webhook + send/receive logic</td>
-<td><code>backend/.env</code>, <code>POST /api/webhook</code></td>
 </tr>
 </tbody></table>
 <hr>
@@ -272,7 +261,7 @@
 </tr>
 <tr>
 <td><strong>Country code</strong></td>
-<td>Use E.164 format without <code>+</code> in API config (e.g. <code>919876543210</code>, <code>15551234567</code>).</td>
+<td>Include country code when registering (e.g. India <code>91</code>, US <code>1</code>).</td>
 </tr>
 <tr>
 <td><strong>Display name</strong></td>
@@ -285,12 +274,6 @@
 <li>Verify your email (OTP during signup).</li>
 <li>Accept Terms, Privacy, and WhatsApp commerce policies when prompted.</li>
 </ol>
-<h3>4. For local development (this repo)</h3>
-<ul>
-<li><a href="https://ngrok.com">ngrok</a> or another HTTPS tunnel for webhooks</li>
-<li>Backend running on port <code>3000</code> (see root <code>README.md</code>)</li>
-<li>PostgreSQL per <code>backend/.env</code></li>
-</ul>
 <hr>
 <h2>Part A — Meta Business Manager &amp; WABA (if not already done)</h2>
 <p>Do this <strong>before</strong> or <strong>during</strong> Gupshup’s “Continue with Facebook” flow.</p>
@@ -383,6 +366,398 @@
 <li>Check status in Meta: <strong>WhatsApp Manager</strong> → your WABA → <strong>Phone numbers</strong>.</li>
 </ul>
 <hr>
+<h2>Part C — Gupshup vs WATI</h2>
+<p>Both <strong>Gupshup</strong> and <strong>WATI</strong> are WhatsApp Business Solution Providers (BSPs). They sit between your business and <strong>Meta’s WhatsApp Cloud API</strong> — you still need Meta Business Manager, a WABA, and an approved business number with either provider.</p>
+<p>This comparison helps you understand account and platform differences when choosing or migrating.</p>
+<h3>At a glance</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Gupshup</th>
+<th>WATI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Role</strong></td>
+<td>BSP; API + console for WhatsApp Cloud API</td>
+<td>BSP; API + team inbox for WhatsApp Cloud API</td>
+</tr>
+<tr>
+<td><strong>Meta required?</strong></td>
+<td>Yes — embedded signup via “Continue with Facebook”</td>
+<td>Yes — connect number through WATI + Meta</td>
+</tr>
+<tr>
+<td><strong>Primary console</strong></td>
+<td><a href="https://www.gupshup.io">gupshup.io</a> WhatsApp dashboard</td>
+<td><a href="https://www.wati.io">wati.io</a> dashboard</td>
+</tr>
+<tr>
+<td><strong>Typical buyer</strong></td>
+<td>Developers, enterprises, India-heavy deployments</td>
+<td>SMBs, marketing teams, ops-heavy teams wanting inbox UI</td>
+</tr>
+<tr>
+<td><strong>Team inbox</strong></td>
+<td>Messaging via API; lighter built-in inbox</td>
+<td>Strong <strong>Team Inbox</strong> for human agents</td>
+</tr>
+<tr>
+<td><strong>Sandbox / test</strong></td>
+<td>Sandbox tab, proxy number, opt-in flow</td>
+<td>Trial / test workflows in dashboard</td>
+</tr>
+<tr>
+<td><strong>Billing</strong></td>
+<td>Wallet / prepaid or postpaid (plan-dependent)</td>
+<td>Subscription plans (tier-based)</td>
+</tr>
+</tbody></table>
+<h3>Account setup &amp; onboarding</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Gupshup</th>
+<th>WATI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Signup</strong></td>
+<td>Gupshup account → email OTP → create WhatsApp app</td>
+<td>WATI account → business verification</td>
+</tr>
+<tr>
+<td><strong>Link to Meta</strong></td>
+<td><strong>Go Live</strong> → <strong>Continue with Facebook</strong> (popup)</td>
+<td>Settings → Phone numbers → Meta Cloud API wizard</td>
+</tr>
+<tr>
+<td><strong>Phone number</strong></td>
+<td>Add number in Gupshup UI or Meta; SMS or voice OTP</td>
+<td>Add in WATI dashboard; Meta verification</td>
+</tr>
+<tr>
+<td><strong>Display name</strong></td>
+<td>Set during Meta/Gupshup flow; Meta reviews name</td>
+<td>Set during WATI/Meta onboarding; Meta reviews name</td>
+</tr>
+<tr>
+<td><strong>Business verification</strong></td>
+<td>Handled in <strong>Meta Business Manager</strong> (both providers depend on Meta)</td>
+<td>Same — Meta Business verification</td>
+</tr>
+<tr>
+<td><strong>Multi-number</strong></td>
+<td>Multiple apps / numbers per account (plan limits apply)</td>
+<td>Multiple numbers; <code>channelPhone</code> for routing</td>
+</tr>
+<tr>
+<td><strong>Migrating a number</strong></td>
+<td>Embedded signup from another BSP; disable 2FA at old BSP first</td>
+<td>WATI migration flow; same Meta rules apply</td>
+</tr>
+</tbody></table>
+<h3>Templates &amp; messaging rules</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Gupshup</th>
+<th>WATI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>24-hour session window</strong></td>
+<td>Same WhatsApp rule — session messages only inside 24h of user’s last message</td>
+<td>Same</td>
+</tr>
+<tr>
+<td><strong>Outside 24 hours</strong></td>
+<td>Approved <strong>template</strong> required</td>
+<td>Approved <strong>template</strong> required</td>
+</tr>
+<tr>
+<td><strong>Template identity</strong></td>
+<td>Template <strong>UUID</strong> (<code>id</code>) in dashboard/API</td>
+<td>Template <strong>name</strong> string in dashboard/API</td>
+</tr>
+<tr>
+<td><strong>Template approval</strong></td>
+<td>Submit in Gupshup → WhatsApp/Meta approval</td>
+<td>Submit in WATI → WhatsApp/Meta approval</td>
+</tr>
+<tr>
+<td><strong>Categories</strong></td>
+<td>Utility, marketing, authentication (Meta standard)</td>
+<td>Same Meta standard</td>
+</tr>
+</tbody></table>
+<h3>Platform &amp; API style (high level)</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Gupshup</th>
+<th>WATI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Auth</strong></td>
+<td><code>apikey</code> header on requests</td>
+<td><code>Authorization: Bearer</code> token</td>
+</tr>
+<tr>
+<td><strong>API base</strong></td>
+<td><code>https://api.gupshup.io/wa/api/v1/...</code></td>
+<td>Tenant URL e.g. <code>https://live-mt-server.wati.io/{tenantId}/api/v1/...</code></td>
+</tr>
+<tr>
+<td><strong>Send text (session)</strong></td>
+<td>Single <code>/msg</code> endpoint; form body with <code>source</code>, <code>destination</code>, <code>src.name</code>, <code>message</code> JSON</td>
+<td><code>sendSessionMessage/{whatsappNumber}</code> with <code>messageText</code></td>
+</tr>
+<tr>
+<td><strong>Send template</strong></td>
+<td><code>/template/msg</code> with <code>template={"id":"...","params":[]}</code></td>
+<td><code>sendTemplateMessage</code> with <code>template_name</code></td>
+</tr>
+<tr>
+<td><strong>Send media (session)</strong></td>
+<td>Public <strong>URL</strong> in message JSON (Gupshup fetches the file)</td>
+<td><strong>Multipart upload</strong> of file to WATI</td>
+</tr>
+<tr>
+<td><strong>Inbound webhook shape</strong></td>
+<td>Nested JSON: <code>type: "message"</code>, <code>payload.source</code>, inner <code>payload</code> by media type</td>
+<td>Flatter JSON: <code>waId</code>, <code>text</code>, <code>type</code>, <code>eventType</code>, <code>data.fileName</code></td>
+</tr>
+<tr>
+<td><strong>Inbound media</strong></td>
+<td>Temporary <strong>download URL</strong> in webhook (expires)</td>
+<td><strong>fileName</strong> reference; fetch via WATI <code>getMedia</code> API</td>
+</tr>
+<tr>
+<td><strong>Webhook response</strong></td>
+<td>Empty HTTP 200 recommended</td>
+<td>Fast HTTP 200 JSON ack</td>
+</tr>
+</tbody></table>
+<h3>Dashboard &amp; operations</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Gupshup</th>
+<th>WATI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Agent handoff</strong></td>
+<td>Build your own or use integrations</td>
+<td>Native team inbox, assignment, labels</td>
+</tr>
+<tr>
+<td><strong>Broadcasts / campaigns</strong></td>
+<td>Available (product/plan dependent)</td>
+<td>Broadcast features in dashboard</td>
+</tr>
+<tr>
+<td><strong>Contacts / CRM</strong></td>
+<td>Limited native CRM; often paired with your app</td>
+<td>Contact views in WATI</td>
+</tr>
+<tr>
+<td><strong>Docs</strong></td>
+<td><a href="https://docs.gupshup.io">docs.gupshup.io</a></td>
+<td><a href="https://docs.wati.io">docs.wati.io</a></td>
+</tr>
+</tbody></table>
+<h3>DPDP &amp; HIPAA (compliance framing)</h3>
+<blockquote>
+<p><strong>Disclaimer:</strong> This section is for planning only, not legal advice. Have qualified counsel review your use case, contracts, and data flows before production — especially for health data.</p>
+</blockquote>
+<p>Neither Gupshup nor WATI makes you automatically compliant with <strong>India’s Digital Personal Data Protection Act (DPDP)</strong> or <strong>US HIPAA</strong>. With either BSP, <strong>you</strong> are typically the <strong>data fiduciary</strong> (DPDP) or <strong>covered entity</strong> (HIPAA). The BSP and Meta act as <strong>processors</strong> / <strong>business associates</strong> (where applicable). Compliance depends on your policies, contracts, and how you store and process data — not only which BSP you pick.</p>
+<h4>DPDP (India)</h4>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Gupshup</th>
+<th>WATI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>BSP “certifies” DPDP?</strong></td>
+<td>No — you remain responsible</td>
+<td>No — same</td>
+</tr>
+<tr>
+<td><strong>Cross-border transfers</strong></td>
+<td>Messages flow through <strong>Meta</strong> (global infrastructure). DPDP generally permits transfers unless the government restricts a specific country (negative-list model).</td>
+<td>Same</td>
+</tr>
+<tr>
+<td><strong>India storage (WhatsApp message data at rest)</strong></td>
+<td>Both use <strong>Meta Cloud API</strong>. Enable Meta <strong>Local Storage</strong> with <code>data_localization_region: IN</code> on the business phone number — see <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/overview/local-storage/">Meta local storage</a>.</td>
+<td>Same</td>
+</tr>
+<tr>
+<td><strong>India onboarding</strong></td>
+<td>Often prompts for <strong>data storage region</strong> during signup; Indian BSP with strong India market presence</td>
+<td>Supports Meta Cloud API; India localization configured through Meta/WATI onboarding</td>
+</tr>
+<tr>
+<td><strong>Data Processing Agreement</strong></td>
+<td>Obtain a <strong>DPA</strong> with Gupshup; document Meta as sub-processor</td>
+<td>Obtain a <strong>DPA</strong> with WATI; document Meta as sub-processor</td>
+</tr>
+<tr>
+<td><strong>Your obligations (either BSP)</strong></td>
+<td>Explicit consent for marketing, privacy notice, retention/erasure, security safeguards, breach notification, honouring data-principal rights</td>
+<td>Same</td>
+</tr>
+</tbody></table>
+<p><strong>DPDP takeaway:</strong> <strong>Slight practical edge to Gupshup</strong> for India-first products (local vendor, region choice at signup). <strong>No legal shortcut</strong> — same core duties apply with WATI. Sector rules (e.g. health, finance) may impose stricter handling than the base DPDP Act alone.</p>
+<p><strong>Account-setup actions (India):</strong></p>
+<ol>
+<li>Enable <strong>Meta India local storage</strong> when registering the business number (Parts A–B).</li>
+<li>Sign <strong>DPAs</strong> with your BSP and review Meta’s terms for sub-processing.</li>
+<li>Align privacy notices and <strong>WhatsApp opt-in</strong> with DPDP consent requirements (separate consent for marketing vs service messages where needed).</li>
+</ol>
+<h4>HIPAA (United States)</h4>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Gupshup</th>
+<th>WATI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>HIPAA-compliant WhatsApp for PHI?</strong></td>
+<td><strong>No</strong> for routine protected health information (PHI) on WhatsApp</td>
+<td><strong>No</strong> — same underlying channel</td>
+</tr>
+<tr>
+<td><strong>Business Associate Agreement (BAA)</strong></td>
+<td><strong>Meta does not sign BAAs</strong> for WhatsApp Business API. Choosing Gupshup does not change this.</td>
+<td>Same</td>
+</tr>
+<tr>
+<td><strong>Encryption</strong></td>
+<td>WhatsApp encrypts messages in transit; <strong>encryption alone is not HIPAA compliance</strong></td>
+<td>Same</td>
+</tr>
+<tr>
+<td><strong>Typical allowed use</strong></td>
+<td>Generic, non-PHI messages (e.g. appointment reminders without clinical detail); links to a <strong>HIPAA-compliant portal</strong></td>
+<td>Same</td>
+</tr>
+<tr>
+<td><strong>Patient-initiated contact</strong></td>
+<td>Possible in limited cases if the patient chooses WhatsApp after clear notice of risk — document the choice; still restrict PHI and secure your own systems</td>
+<td>Same</td>
+</tr>
+</tbody></table>
+<p><strong>HIPAA takeaway:</strong> <strong>No winner.</strong> If you must process <strong>PHI</strong> under HIPAA, do not treat WhatsApp (Gupshup or WATI) as your primary clinical channel. Major US providers document that <strong>WhatsApp APIs are not HIPAA-eligible</strong> because Meta will not provide a BAA for that channel.</p>
+<p><strong>Account-setup actions (US healthcare):</strong></p>
+<ol>
+<li>Define what may be sent on WhatsApp (<strong>non-PHI only</strong> unless counsel approves a narrow patient-initiated model).</li>
+<li>Ensure <strong>BAAs</strong> cover systems that actually store or process PHI (hosting, database, LLM vendor, support tools) — not only the BSP.</li>
+<li>Do not assume team inbox or BSP dashboards meet HIPAA audit and access-control requirements for PHI.</li>
+</ol>
+<h4>Health / wellness products (both regulations)</h4>
+<p>WhatsApp is only one layer. Chat history, AI responses, admin dashboards, and logs may contain <strong>personal or health-related data</strong> subject to DPDP, HIPAA, or both depending on users and jurisdiction.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Compliance consideration</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Meta / WhatsApp</strong></td>
+<td>Message routing, template rules, optional India local storage</td>
+</tr>
+<tr>
+<td><strong>Gupshup or WATI</strong></td>
+<td>BSP contract, DPA, message metadata on their systems</td>
+</tr>
+<tr>
+<td><strong>Your application</strong></td>
+<td>Database retention, consent, minimization, access control, LLM processing, escalation alerts</td>
+</tr>
+</tbody></table>
+<p><strong>Summary</strong></p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Guidance</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DPDP / India users</strong></td>
+<td>Gupshup is often a sensible <strong>operational</strong> choice; enable Meta <strong>India local storage</strong>; complete DPDP program (consent, notice, DPAs, retention).</td>
+</tr>
+<tr>
+<td><strong>HIPAA / US users</strong></td>
+<td><strong>Neither BSP</strong> solves HIPAA for PHI on WhatsApp; design around non-PHI messaging or HIPAA-capable systems with signed BAAs.</td>
+</tr>
+<tr>
+<td><strong>Choosing for compliance only</strong></td>
+<td><strong>Architecture and contracts matter more than Gupshup vs WATI.</strong></td>
+</tr>
+</tbody></table>
+<h3>When to prefer which</h3>
+<p><strong>Consider Gupshup if:</strong></p>
+<ul>
+<li>You want a developer-first API and already manage conversations in your own app.</li>
+<li>You are standardizing on Gupshup for India pricing, wallet billing, or an existing Gupshup relationship.</li>
+<li>You are fine hosting media on a public URL for outbound files.</li>
+</ul>
+<p><strong>Consider WATI if:</strong></p>
+<ul>
+<li>Non-technical staff need a <strong>ready-made WhatsApp inbox</strong> without building admin UI.</li>
+<li>You prefer <strong>multipart file upload</strong> for outbound media (no public URL requirement).</li>
+<li>Your team is already trained on WATI templates, inbox, and webhooks.</li>
+</ul>
+<p><strong>Switching WATI → Gupshup (account level):</strong></p>
+<ol>
+<li>Complete Gupshup <strong>Go Live</strong> and Meta linking (Parts A–B above).</li>
+<li>Migrate or register the business phone on Gupshup (disable 2FA at WATI first if migrating the same number).</li>
+<li>Recreate <strong>message templates</strong> in Gupshup and get them approved (Gupshup uses template UUIDs, not WATI template names).</li>
+<li>Deactivate the number on WATI once Gupshup is live so only one BSP owns the line.</li>
+</ol>
+<p>Both providers enforce the same <strong>Meta policies</strong> (opt-in, template rules, commerce policy). Changing BSP does not bypass Meta business verification or display-name approval.</p>
+<hr>
+<h2>Verification checklist</h2>
+<h3>Meta / Facebook</h3>
+<ul>
+<li><input type="checkbox" disabled=""> Meta Business Manager created</li>
+<li><input type="checkbox" disabled=""> Business verification submitted (and approved for production)</li>
+<li><input type="checkbox" disabled=""> WABA created or linked</li>
+<li><input type="checkbox" disabled=""> Business phone number verified (SMS or call)</li>
+<li><input type="checkbox" disabled=""> Display name approved or pending (tracked in WhatsApp Manager)</li>
+</ul>
+<h3>Gupshup</h3>
+<ul>
+<li><input type="checkbox" disabled=""> Gupshup account created and email verified</li>
+<li><input type="checkbox" disabled=""> WhatsApp app <strong>Go Live</strong> / FB registration completed</li>
+<li><input type="checkbox" disabled=""> Business phone number connected and verified</li>
+<li><input type="checkbox" disabled=""> Wallet/billing configured if required by your plan</li>
+</ul>
+<hr>
+<h2>Quick reference — account setup complete when you have</h2>
+<ol>
+<li><strong>Meta Business Manager</strong> (with business verification submitted or approved)</li>
+<li><strong>WABA</strong> linked to your business</li>
+<li><strong>Verified business phone number</strong> on WhatsApp API</li>
+<li><strong>Gupshup app</strong> in <strong>Go Live</strong> state</li>
+</ol>
+
   </article>
   <script>
       window.addEventListener('load', function () {
