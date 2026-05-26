@@ -164,7 +164,7 @@
 </ul>
 <hr>
 <h2>How the pieces fit together</h2>
-<div class="mermaid-container"><div id="mermaid-diagram-hp0kuoc96" class="mermaid">flowchart LR
+<div class="mermaid-container"><div id="mermaid-diagram-m4vc74ks5" class="mermaid">flowchart LR
   User[End user WhatsApp] --&gt; Meta[Meta WhatsApp Cloud API]
   Meta --&gt; Gupshup[Gupshup BSP]
   Gupshup --&gt; Meta
@@ -459,91 +459,6 @@
 <td>WATI migration flow; same Meta rules apply</td>
 </tr>
 </tbody></table>
-<h3>Templates &amp; messaging rules</h3>
-<table>
-<thead>
-<tr>
-<th>Topic</th>
-<th>Gupshup</th>
-<th>WATI</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>24-hour session window</strong></td>
-<td>Same WhatsApp rule — session messages only inside 24h of user’s last message</td>
-<td>Same</td>
-</tr>
-<tr>
-<td><strong>Outside 24 hours</strong></td>
-<td>Approved <strong>template</strong> required</td>
-<td>Approved <strong>template</strong> required</td>
-</tr>
-<tr>
-<td><strong>Template identity</strong></td>
-<td>Template <strong>UUID</strong> (<code>id</code>) in dashboard/API</td>
-<td>Template <strong>name</strong> string in dashboard/API</td>
-</tr>
-<tr>
-<td><strong>Template approval</strong></td>
-<td>Submit in Gupshup → WhatsApp/Meta approval</td>
-<td>Submit in WATI → WhatsApp/Meta approval</td>
-</tr>
-<tr>
-<td><strong>Categories</strong></td>
-<td>Utility, marketing, authentication (Meta standard)</td>
-<td>Same Meta standard</td>
-</tr>
-</tbody></table>
-<h3>Platform &amp; API style (high level)</h3>
-<table>
-<thead>
-<tr>
-<th>Topic</th>
-<th>Gupshup</th>
-<th>WATI</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Auth</strong></td>
-<td><code>apikey</code> header on requests</td>
-<td><code>Authorization: Bearer</code> token</td>
-</tr>
-<tr>
-<td><strong>API base</strong></td>
-<td><code>https://api.gupshup.io/wa/api/v1/...</code></td>
-<td>Tenant URL e.g. <code>https://live-mt-server.wati.io/{tenantId}/api/v1/...</code></td>
-</tr>
-<tr>
-<td><strong>Send text (session)</strong></td>
-<td>Single <code>/msg</code> endpoint; form body with <code>source</code>, <code>destination</code>, <code>src.name</code>, <code>message</code> JSON</td>
-<td><code>sendSessionMessage/{whatsappNumber}</code> with <code>messageText</code></td>
-</tr>
-<tr>
-<td><strong>Send template</strong></td>
-<td><code>/template/msg</code> with <code>template={"id":"...","params":[]}</code></td>
-<td><code>sendTemplateMessage</code> with <code>template_name</code></td>
-</tr>
-<tr>
-<td><strong>Send media (session)</strong></td>
-<td>Public <strong>URL</strong> in message JSON (Gupshup fetches the file)</td>
-<td><strong>Multipart upload</strong> of file to WATI</td>
-</tr>
-<tr>
-<td><strong>Inbound webhook shape</strong></td>
-<td>Nested JSON: <code>type: "message"</code>, <code>payload.source</code>, inner <code>payload</code> by media type</td>
-<td>Flatter JSON: <code>waId</code>, <code>text</code>, <code>type</code>, <code>eventType</code>, <code>data.fileName</code></td>
-</tr>
-<tr>
-<td><strong>Inbound media</strong></td>
-<td>Temporary <strong>download URL</strong> in webhook (expires)</td>
-<td><strong>fileName</strong> reference; fetch via WATI <code>getMedia</code> API</td>
-</tr>
-<tr>
-<td><strong>Webhook response</strong></td>
-<td>Empty HTTP 200 recommended</td>
-<td>Fast HTTP 200 JSON ack</td>
-</tr>
-</tbody></table>
 <h3>Dashboard &amp; operations</h3>
 <table>
 <thead>
@@ -724,39 +639,6 @@
 <li>You prefer <strong>multipart file upload</strong> for outbound media (no public URL requirement).</li>
 <li>Your team is already trained on WATI templates, inbox, and webhooks.</li>
 </ul>
-<p><strong>Switching WATI → Gupshup (account level):</strong></p>
-<ol>
-<li>Complete Gupshup <strong>Go Live</strong> and Meta linking (Parts A–B above).</li>
-<li>Migrate or register the business phone on Gupshup (disable 2FA at WATI first if migrating the same number).</li>
-<li>Recreate <strong>message templates</strong> in Gupshup and get them approved (Gupshup uses template UUIDs, not WATI template names).</li>
-<li>Deactivate the number on WATI once Gupshup is live so only one BSP owns the line.</li>
-</ol>
-<p>Both providers enforce the same <strong>Meta policies</strong> (opt-in, template rules, commerce policy). Changing BSP does not bypass Meta business verification or display-name approval.</p>
-<hr>
-<h2>Verification checklist</h2>
-<h3>Meta / Facebook</h3>
-<ul>
-<li><input type="checkbox" disabled=""> Meta Business Manager created</li>
-<li><input type="checkbox" disabled=""> Business verification submitted (and approved for production)</li>
-<li><input type="checkbox" disabled=""> WABA created or linked</li>
-<li><input type="checkbox" disabled=""> Business phone number verified (SMS or call)</li>
-<li><input type="checkbox" disabled=""> Display name approved or pending (tracked in WhatsApp Manager)</li>
-</ul>
-<h3>Gupshup</h3>
-<ul>
-<li><input type="checkbox" disabled=""> Gupshup account created and email verified</li>
-<li><input type="checkbox" disabled=""> WhatsApp app <strong>Go Live</strong> / FB registration completed</li>
-<li><input type="checkbox" disabled=""> Business phone number connected and verified</li>
-<li><input type="checkbox" disabled=""> Wallet/billing configured if required by your plan</li>
-</ul>
-<hr>
-<h2>Quick reference — account setup complete when you have</h2>
-<ol>
-<li><strong>Meta Business Manager</strong> (with business verification submitted or approved)</li>
-<li><strong>WABA</strong> linked to your business</li>
-<li><strong>Verified business phone number</strong> on WhatsApp API</li>
-<li><strong>Gupshup app</strong> in <strong>Go Live</strong> state</li>
-</ol>
 
   </article>
   <script>
