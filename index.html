@@ -164,7 +164,7 @@
 </ul>
 <hr>
 <h2>How the pieces fit together</h2>
-<div class="mermaid-container"><div id="mermaid-diagram-m4vc74ks5" class="mermaid">flowchart LR
+<div class="mermaid-container"><div id="mermaid-diagram-vy7li8a2q" class="mermaid">flowchart LR
   User[End user WhatsApp] --&gt; Meta[Meta WhatsApp Cloud API]
   Meta --&gt; Gupshup[Gupshup BSP]
   Gupshup --&gt; Meta
@@ -626,6 +626,140 @@
 <td><strong>Architecture and contracts matter more than Gupshup vs WATI.</strong></td>
 </tr>
 </tbody></table>
+<h3>Meta Local Storage (India) — summary</h3>
+<p>If you enable <strong>Meta Cloud API Local Storage</strong> with <code>data_localization_region: IN</code> on your WhatsApp business phone number, this section explains <strong>where chats and documents are stored</strong> on Meta’s side, and whether users <strong>outside India</strong> (e.g. Dubai) can still use your service.</p>
+<p>Reference: <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/overview/local-storage/">Meta WhatsApp Cloud API — Local storage</a></p>
+<h4>Where message data is stored (Meta only)</h4>
+<p>Meta splits storage into two phases:</p>
+<div class="mermaid-container"><div id="mermaid-diagram-u3cwn58pk" class="mermaid">flowchart LR
+  A[User sends text or document] --&gt; B[Data-in-use up to ~60 min]
+  B --&gt; C[May use Meta infra globally]
+  C --&gt; D[Data-at-rest]
+  D --&gt; E[India Meta data centers only]</div></div><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Location</th>
+<th>What is covered</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Data-in-use</strong></td>
+<td>Meta data centers <strong>internationally</strong> while the message is processed</td>
+<td>Chat <strong>text</strong> and <strong>media</strong> (documents, images, video, audio)</td>
+</tr>
+<tr>
+<td><strong>Duration</strong></td>
+<td>Up to <strong>~60 minutes</strong> for Cloud API, then removed from outside India</td>
+<td>Per Meta’s local-storage rules</td>
+</tr>
+<tr>
+<td><strong>Data-at-rest</strong></td>
+<td><strong>India only</strong> after the data-in-use period</td>
+<td>Same content: message body, <strong>document/media files</strong>, template text/media</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Content type</th>
+<th>Stored at rest in India (on Meta)?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chat text</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Documents (PDF, etc.)</td>
+<td>Yes (as media)</td>
+</tr>
+<tr>
+<td>Images, video, audio</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Template message text/media</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<p><strong>Without</strong> India local storage, Meta’s default Cloud API storage at rest is typically the <strong>United States</strong>. With <strong>IN</strong> enabled, <strong>India replaces that default</strong> for stored message content on that business number.</p>
+<p>Meta may retain message data for up to <strong>~30 days</strong> on Cloud API for features such as retries — still subject to the <strong>India</strong> at-rest location when local storage is enabled.</p>
+<h4>What is not automatically “India only”</h4>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Your systems</strong></td>
+<td>Anything you save (database, disk, logs) is on <strong>your</strong> infrastructure — your choice of region.</td>
+</tr>
+<tr>
+<td><strong>Gupshup or WATI</strong></td>
+<td>Inbound media may sit on the BSP (e.g. temporary file URLs) — separate from Meta India local storage.</td>
+</tr>
+<tr>
+<td><strong>User’s phone</strong></td>
+<td>Chats remain in the end user’s WhatsApp app.</td>
+</tr>
+<tr>
+<td><strong>Other vendors</strong></td>
+<td>Data sent to an LLM or other APIs is stored per <strong>that vendor’s</strong> policies.</td>
+</tr>
+</tbody></table>
+<p><strong>Takeaway:</strong> India local storage controls <strong>Meta’s Cloud API copy at rest</strong> for your business number — not every copy of the conversation worldwide.</p>
+<h4>Can users outside India (e.g. Dubai) use your WhatsApp service?</h4>
+<p><strong>Yes.</strong> India local storage does <strong>not</strong> block international users from messaging your business number or receiving replies.</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Geographic block?</strong></td>
+<td>No — UAE, Dubai, and other supported countries can use WhatsApp with your number.</td>
+</tr>
+<tr>
+<td><strong>What IN storage controls</strong></td>
+<td><strong>Where Meta keeps your API message data at rest</strong>, not which countries may contact you.</td>
+</tr>
+<tr>
+<td><strong>Rules that still apply</strong></td>
+<td>User must have WhatsApp; <strong>24-hour session</strong> vs <strong>templates</strong>; opt-in/consent and privacy policies for your business.</td>
+</tr>
+</tbody></table>
+<p>Example: Business in India with local storage <strong>IN</strong>; client in Dubai messages you → conversation works normally.</p>
+<h4>Quick answers</h4>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Are chats stored on <strong>Indian Meta servers</strong>?</td>
+<td><strong>At rest, yes</strong> — after the short processing window.</td>
+</tr>
+<tr>
+<td>Are they stored <strong>outside</strong> India on Meta?</td>
+<td><strong>During processing (≤ ~60 min), possibly yes.</strong> <strong>After that, Meta should not keep that message content outside India</strong> for Cloud API local storage.</td>
+</tr>
+<tr>
+<td>Are <strong>documents</strong> included?</td>
+<td><strong>Yes</strong> — documents are media messages; same flow as text.</td>
+</tr>
+<tr>
+<td>Is <strong>everything</strong> only in India?</td>
+<td><strong>No</strong> — only Meta’s at-rest API storage is pinned to India; your app, BSP, user devices, and other vendors are separate.</td>
+</tr>
+</tbody></table>
+<p>For legal or DPDP sign-off, confirm details in Meta’s <strong>Hosting Terms / Cloud API</strong> documentation for your account and ask Gupshup how long they retain webhook or media copies on their own systems.</p>
 <h3>When to prefer which</h3>
 <p><strong>Consider Gupshup if:</strong></p>
 <ul>
