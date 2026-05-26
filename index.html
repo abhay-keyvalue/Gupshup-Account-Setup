@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Export</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.3.0/github-markdown-dark.min.css">
+  <script>
+      window.MathJax = {
+          loader: { load: ['[tex]/ams', '[tex]/boldsymbol'] },
+          tex: {
+              inlineMath: [['$', '$'], ['\\(', '\\)']],
+              displayMath: [['$$', '$$'], ['\\[', '\\]']],
+              processEscapes: true,
+              packages: { '[+]': ['ams', 'boldsymbol'] }
+          }
+      };
+  </script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
+  <style>
+      body {
+          background-color: #0d1117;
+          color: #c9d1d9;
+      }
+      .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+          background-color: #0d1117;
+          color: #c9d1d9;
+      }
+
+      /* Syntax Highlighting */
+      .hljs-doctag, .hljs-keyword, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-variable.language_ { color: #ff7b72; }
+      .hljs-title, .hljs-title.class_, .hljs-title.class_.inherited__, .hljs-title.function_ { color: #d2a8ff; }
+      .hljs-attr, .hljs-attribute, .hljs-literal, .hljs-meta, .hljs-number, .hljs-operator, .hljs-variable, .hljs-selector-attr, .hljs-selector-class, .hljs-selector-id { color: #79c0ff; }
+      .hljs-regexp, .hljs-string, .hljs-meta .hljs-string { color: #a5d6ff; }
+      .hljs-built_in, .hljs-symbol { color: #ffa657; }
+      .hljs-comment, .hljs-code, .hljs-formula { color: #8b949e; }
+      .hljs-name, .hljs-quote, .hljs-selector-tag, .hljs-selector-pseudo { color: #7ee787; }
+      .hljs-subst { color: #c9d1d9; }
+      .hljs-section { color: #1f6feb; font-weight: bold; }
+      .hljs-bullet { color: #79c0ff; }
+      .hljs-emphasis { font-style: italic; }
+      .hljs-strong { font-weight: bold; }
+      .hljs-addition { color: #aff5b4; background-color: #033a16; }
+      .hljs-deletion { color: #ffdcd7; background-color: #67060c; }
+
+      .markdown-alert {
+          padding: 0.5rem 1rem;
+          margin-bottom: 16px;
+          border-left: 0.25em solid;
+          border-radius: 0.375rem;
+      }
+      .markdown-alert > :last-child {
+          margin-bottom: 0;
+      }
+      .markdown-alert-title {
+          margin: 0 0 8px;
+          font-weight: 600;
+          line-height: 1.25;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .markdown-alert-icon {
+          display: inline-flex;
+          width: 16px;
+          height: 16px;
+      }
+      .markdown-alert-icon svg {
+          width: 16px;
+          height: 16px;
+          fill: currentColor;
+      }
+      .markdown-alert-note { color: #4493f8; border-left-color: #4493f8; background-color: rgba(31, 111, 235, 0.15); }
+      .markdown-alert-tip { color: #3fb950; border-left-color: #3fb950; background-color: rgba(35, 134, 54, 0.15); }
+      .markdown-alert-important { color: #ab7df8; border-left-color: #ab7df8; background-color: rgba(137, 87, 229, 0.15); }
+      .markdown-alert-warning { color: #d29922; border-left-color: #d29922; background-color: rgba(210, 153, 34, 0.18); }
+      .markdown-alert-caution { color: #f85149; border-left-color: #f85149; background-color: rgba(248, 81, 73, 0.18); }
+      .markdown-alert > *:not(.markdown-alert-title) { color: #c9d1d9; }
+
+      .frontmatter-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 24px;
+          font-size: 14px;
+      }
+      .frontmatter-table th,
+      .frontmatter-table td {
+          border: 1px solid #30363d;
+          padding: 8px 12px;
+          text-align: left;
+      }
+      .frontmatter-table th {
+          font-weight: 600;
+          background-color: #161b22;
+          width: 150px;
+      }
+
+      /* Footnote styles */
+      .footnotes {
+          margin-top: 1.5rem;
+          font-size: 0.9em;
+          border-top: 1px solid #30363d;
+          padding-top: 8px;
+      }
+      .footnotes ol {
+          padding-left: 1.5em;
+      }
+      .footnotes ol > li::marker {
+          content: "[" counter(list-item) "] ";
+          font-weight: 600;
+      }
+      .footnotes li > p {
+          margin: 0.2em 0;
+      }
+      .footnote-ref a,
+      .footnote-backref {
+          text-decoration: none;
+      }
+      .footnote-backref {
+          margin-left: 0.4em;
+      }
+      a.reference-link {
+          font-size: 0.75em;
+          letter-spacing: -0.02em;
+          line-height: 1;
+          vertical-align: super;
+          position: relative;
+          top: 0.08em;
+      }
+
+      /* Mermaid and Math styles */
+      .mermaid-container {
+          position: relative;
+          margin-bottom: 16px;
+      }
+      .math-block {
+          margin: 1em 0;
+          overflow-x: auto;
+          text-align: center;
+      }
+
+      @media (max-width: 767px) {
+          .markdown-body {
+              padding: 15px;
+          }
+      }
+  </style>
+</head>
+<body>
+  <article class="markdown-body">
+      <h1>Gupshup Account Setup Guide</h1>
+<p>This guide walks you through setting up <strong>Gupshup</strong> as your WhatsApp Business API provider for the Health WhatsApp Agent backend. Gupshup connects your app to WhatsApp through <strong>Meta (Facebook) Business Manager</strong> — you cannot skip the Meta steps.</p>
+<p><strong>Official references</strong></p>
+<ul>
+<li><a href="https://docs.gupshup.io/docs/onboarding-guide">Gupshup onboarding guide</a></li>
+<li><a href="https://docs.gupshup.io/docs/whatsapp-signup-process">Gupshup WhatsApp signup process</a></li>
+<li><a href="https://docs.gupshup.io/docs/set-webhookcallback-url">Set callback URL (webhook)</a></li>
+<li><a href="https://developers.facebook.com/docs/whatsapp">Meta WhatsApp Business Platform docs</a></li>
+</ul>
+<hr>
+<h2>How the pieces fit together</h2>
+<div class="mermaid-container"><div id="mermaid-diagram-0pane5gup" class="mermaid">flowchart LR
+  User[End user WhatsApp] --&gt; Meta[Meta WhatsApp Cloud API]
+  Meta --&gt; Gupshup[Gupshup BSP]
+  Gupshup --&gt;|Inbound webhook| Backend[Your backend /api/webhook]
+  Backend --&gt;|Outbound API| Gupshup
+  Gupshup --&gt; Meta
+  Meta --&gt; User
+
+  subgraph meta_setup [You set up in Meta]
+    BM[Meta Business Manager]
+    WABA[WhatsApp Business Account]
+    Phone[Business phone number]
+    BM --&gt; WABA --&gt; Phone
+  end
+
+  subgraph gupshup_setup [You set up in Gupshup]
+    App[Gupshup WhatsApp App]
+    Creds[API key + source + app name]
+    CB[Callback URL]
+    App --&gt; Creds
+    App --&gt; CB
+  end
+
+  meta_setup --&gt; gupshup_setup</div></div><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>What it is</th>
+<th>Where you manage it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Meta Business Manager</strong></td>
+<td>Your company’s business identity with Meta</td>
+<td><a href="https://business.facebook.com">business.facebook.com</a></td>
+</tr>
+<tr>
+<td><strong>WhatsApp Business Account (WABA)</strong></td>
+<td>Container for WhatsApp API numbers and templates</td>
+<td>Meta Business Manager → WhatsApp accounts</td>
+</tr>
+<tr>
+<td><strong>Business phone number</strong></td>
+<td>The number users message (not personal WhatsApp)</td>
+<td>Gupshup onboarding + Meta verification</td>
+</tr>
+<tr>
+<td><strong>Gupshup app</strong></td>
+<td>Your API app (<code>src.name</code>), API key, webhooks</td>
+<td><a href="https://www.gupshup.io/whatsapp/dashboard">Gupshup WhatsApp dashboard</a></td>
+</tr>
+<tr>
+<td><strong>This project</strong></td>
+<td>Webhook + send/receive logic</td>
+<td><code>backend/.env</code>, <code>POST /api/webhook</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Prerequisites (before you start)</h2>
+<h3>1. Meta (Facebook) Business Manager account</h3>
+<p>You need a <strong>Meta Business Manager</strong> account linked to a real business.</p>
+<ol>
+<li>Go to <a href="https://business.facebook.com">business.facebook.com</a> and create or use an existing Business Manager.</li>
+<li>Add your business details (legal name, address, website).</li>
+<li>Complete <strong>Business verification</strong> when Meta prompts you (documents such as registration certificate, tax ID, utility bill — depending on country).</li>
+</ol>
+<blockquote>
+<p><strong>Important:</strong> Business verification is separate from phone OTP verification. For <strong>production</strong> messaging and higher limits, Meta usually requires business verification to be approved. Sandbox/testing may work before full verification, but plan for 3–14+ business days for Meta review.</p>
+</blockquote>
+<p><strong>Tips to reduce Meta rejections</strong></p>
+<ul>
+<li>Legal name and address in Business Manager must <strong>match</strong> official documents exactly.</li>
+<li>Use a business website with legal name in the footer; verify your domain in Business Manager if asked.</li>
+<li>Use a company email on your domain (e.g. <code>support@yourcompany.com</code>), not only a personal Gmail.</li>
+</ul>
+<p><strong>If someone else owns the Meta account</strong></p>
+<ul>
+<li>They must invite you as <strong>Admin</strong> with full WhatsApp permissions, <strong>or</strong></li>
+<li>During Gupshup onboarding, use <strong>“Continue with Facebook”</strong> and have the owner complete the popup, <strong>or</strong></li>
+<li>Copy the <strong>Direct Facebook Registration</strong> link from Gupshup and send it to the Meta account owner.</li>
+</ul>
+<h3>2. WhatsApp Business phone number</h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Dedicated number</strong></td>
+<td>Must not be active on the regular WhatsApp or WhatsApp Business <strong>mobile app</strong> on the same number. Migrate or use a new number.</td>
+</tr>
+<tr>
+<td><strong>SMS or voice</strong></td>
+<td>Must receive OTP via <strong>text</strong> or <strong>phone call</strong> during setup.</td>
+</tr>
+<tr>
+<td><strong>Landline</strong></td>
+<td>Use <strong>Phone call</strong> verification if the number cannot receive SMS.</td>
+</tr>
+<tr>
+<td><strong>IVR</strong></td>
+<td>Numbers that only reach an IVR (no human/voicemail pickup) may fail verification.</td>
+</tr>
+<tr>
+<td><strong>Country code</strong></td>
+<td>Use E.164 format without <code>+</code> in API config (e.g. <code>919876543210</code>, <code>15551234567</code>).</td>
+</tr>
+<tr>
+<td><strong>Display name</strong></td>
+<td>Shown in chats; must follow <a href="https://developers.facebook.com/docs/whatsapp/display-names">WhatsApp display name guidelines</a>.</td>
+</tr>
+</tbody></table>
+<h3>3. Gupshup account</h3>
+<ol>
+<li>Sign up at <a href="https://www.gupshup.io">gupshup.io</a>.</li>
+<li>Verify your email (OTP during signup).</li>
+<li>Accept Terms, Privacy, and WhatsApp commerce policies when prompted.</li>
+</ol>
+<h3>4. For local development (this repo)</h3>
+<ul>
+<li><a href="https://ngrok.com">ngrok</a> or another HTTPS tunnel for webhooks</li>
+<li>Backend running on port <code>3000</code> (see root <code>README.md</code>)</li>
+<li>PostgreSQL per <code>backend/.env</code></li>
+</ul>
+<hr>
+<h2>Part A — Meta Business Manager &amp; WABA (if not already done)</h2>
+<p>Do this <strong>before</strong> or <strong>during</strong> Gupshup’s “Continue with Facebook” flow.</p>
+<h3>A1. Create or select a Business Manager</h3>
+<ol>
+<li>Open <a href="https://business.facebook.com/settings">Meta Business Settings</a>.</li>
+<li>Create a business or select the correct one (top-left business selector).</li>
+</ol>
+<h3>A2. Create a WhatsApp Business Account (WABA)</h3>
+<ol>
+<li>In Business Settings, go to <strong>Accounts</strong> → <strong>WhatsApp accounts</strong>.</li>
+<li>Click <strong>Add</strong> → create a WhatsApp Business Account.</li>
+<li>Enter an account name (internal label).</li>
+<li>Choose <strong>Your account</strong> (your business) or <strong>Client’s account</strong> if you are an agency (requires client’s Business Manager ID).</li>
+</ol>
+<h3>A3. Add phone number in Meta (optional pre-step)</h3>
+<p>Some teams add the number in Meta first; Gupshup embedded signup can also create/link it.</p>
+<ol>
+<li>Open the WABA → <strong>Phone numbers</strong> → <strong>Add phone number</strong>.</li>
+<li>Enter number and <strong>display name</strong> → complete Meta’s verification OTP.</li>
+</ol>
+<p>You can instead complete number + display name entirely inside Gupshup (Part B) — both paths end up linked to the same WABA.</p>
+<h3>A4. Business verification status</h3>
+<ol>
+<li>Business Settings → <strong>Security Center</strong> → <strong>Business verification</strong>.</li>
+<li>Submit documents and track status until <strong>Verified</strong> (required for full production use).</li>
+</ol>
+<hr>
+<h2>Part B — Gupshup WhatsApp onboarding (embedded signup)</h2>
+<h3>B1. Start WhatsApp setup in Gupshup</h3>
+<ol>
+<li>Log in to <a href="https://www.gupshup.io/whatsapp/dashboard">Gupshup dashboard</a> (or <strong>Dashboard → WhatsApp</strong>).</li>
+<li>Create your first app or open an existing one.</li>
+<li>Click <strong>Go Live</strong> (or <strong>Complete FB Registration</strong> if you started before).</li>
+<li>Choose phone number type (new number vs migration — follow prompts).</li>
+<li>Review <strong>data storage region</strong> and pricing → <strong>Proceed</strong>.</li>
+<li>Enter business details, accept policies, verify <strong>email OTP</strong> → <strong>Confirm</strong>.</li>
+</ol>
+<h3>B2. Connect Meta — “Continue with Facebook”</h3>
+<ol>
+<li>Click <strong>Continue with Facebook</strong> (or share the registration URL with your Meta admin).</li>
+<li><strong>Allow browser pop-ups</strong> — Meta opens in a popup; do not close it.</li>
+<li>Log in to Facebook or <strong>Continue as [name]</strong>.</li>
+<li>In Meta’s flow: <strong>Get started</strong> → fill <strong>business information</strong> → <strong>Next</strong>.</li>
+<li><strong>Create or select</strong> a WhatsApp Business Account (WABA) and business profile.</li>
+<li>Enter <strong>display name</strong> and <strong>category</strong> → <strong>Next</strong>.</li>
+<li>Complete Meta <strong>phone OTP</strong> (SMS or call) → <strong>Next</strong>.</li>
+<li>Review permissions → <strong>Continue</strong> → <strong>Finish</strong>.</li>
+<li>Back in Gupshup: <strong>Confirm</strong> WABA ID and phone number → <strong>Go to dashboard</strong>.</li>
+</ol>
+<p>Your app should show as live (or pending display-name review).</p>
+<h3>B3. Add your WhatsApp phone number (Gupshup UI)</h3>
+<p>This matches the Gupshup screen <strong>“Add your WhatsApp phone number”</strong> (Step 3 in the wizard):</p>
+<p><strong>Choose how you want to be identified</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Use a display name only</strong></td>
+<td>Limited identity mode; users may only see display name in chat. Read Gupshup’s tooltip before choosing.</td>
+</tr>
+<tr>
+<td><strong>Add a new number</strong> (recommended for API)</td>
+<td>Full number registration; <strong>verification required</strong>.</td>
+</tr>
+</tbody></table>
+<p>If you select <strong>Add a new number</strong>:</p>
+<ol>
+<li><strong>Country code</strong> — e.g. <code>US +1</code>, <code>IN +91</code>.</li>
+<li><strong>Phone number</strong> — digits without country code in the field (country code is separate).</li>
+<li><strong>WhatsApp Business display name</strong> — must match your brand; follows Meta guidelines (e.g. <code>Your Clinic Name</code>, not generic “Support”).</li>
+<li><strong>Verify your number</strong><ul>
+<li><strong>Text message</strong> — default for mobile numbers.</li>
+<li><strong>Phone call</strong> — use for <strong>landlines</strong> that cannot receive SMS.</li>
+</ul>
+</li>
+<li>Enter the OTP Gupshup/Meta sends → complete wizard → <strong>Next</strong>.</li>
+</ol>
+<blockquote>
+<p>You’ll receive a code to verify this number. Keep the phone nearby during setup.</p>
+</blockquote>
+<h3>B4. Display name and number approval</h3>
+<ul>
+<li>New display names often show <strong>Pending review</strong> in Meta WhatsApp Manager until approved.</li>
+<li>Messaging may be limited until the name and number are approved.</li>
+<li>Check status in Meta: <strong>WhatsApp Manager</strong> → your WABA → <strong>Phone numbers</strong>.</li>
+</ul>
+<hr>
+<h2>Part C — Get API credentials for this project</h2>
+<p>After the app is live, collect these four values for <code>backend/.env</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Env variable</th>
+<th>Gupshup source</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GUPSHUP_API_KEY</code></td>
+<td>App <strong>Settings</strong> (gear) → API key; or <strong>My Wallet</strong> → profile → API key</td>
+<td><code>61b3021c...</code></td>
+</tr>
+<tr>
+<td><code>GUPSHUP_SOURCE</code></td>
+<td>Your registered WhatsApp number (digits only, with country code)</td>
+<td><code>15557106411</code></td>
+</tr>
+<tr>
+<td><code>GUPSHUP_APP_NAME</code></td>
+<td>App name (<code>src.name</code> in API) — exact match from dashboard</td>
+<td><code>HealthAgentApp</code></td>
+</tr>
+<tr>
+<td><code>GUPSHUP_TEMPLATE_WELCOME</code></td>
+<td>Template <strong>UUID</strong> from approved template (not display name)</td>
+<td><code>c6aecef6-bcb0-...</code></td>
+</tr>
+</tbody></table>
+<p><strong>Where to find them</strong></p>
+<ol>
+<li><a href="https://www.gupshup.io/whatsapp/dashboard">WhatsApp dashboard</a> → select your app.</li>
+<li><strong>Settings</strong> → note <strong>App name</strong>, <strong>App ID</strong> (WABA-related id), <strong>API key</strong>.</li>
+<li><strong>Phone number / Overview</strong> → note the connected sender number → use as <code>GUPSHUP_SOURCE</code> (no <code>+</code>).</li>
+</ol>
+<p><strong>Sandbox (testing only)</strong></p>
+<ul>
+<li>Sandbox may use Gupshup’s proxy number (e.g. <code>917834811114</code>) and opt-in flow.</li>
+<li>Use the <strong>Sandbox</strong> tab in the dashboard for the test sender number and opt-in instructions.</li>
+<li>Production must use your own verified business number.</li>
+</ul>
+<hr>
+<h2>Part D — Configure inbound webhook (callback URL)</h2>
+<p>Gupshup sends user messages and events to your <strong>callback URL</strong>.</p>
+<h3>D1. Public URL</h3>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Callback URL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local</td>
+<td><code>https://&lt;your-ngrok-subdomain&gt;.ngrok-free.app/api/webhook</code></td>
+</tr>
+<tr>
+<td>Production</td>
+<td><code>https://&lt;your-backend-host&gt;/api/webhook</code></td>
+</tr>
+</tbody></table>
+<p>Start ngrok:</p>
+<pre><code class="hljs bash">ngrok http 3000</code></pre><p>Set <code>PUBLIC_URL</code> in <code>backend/.env</code> to the same HTTPS base (no trailing slash).</p>
+<h3>D2. Set callback in Gupshup</h3>
+<ol>
+<li>Dashboard → your app → <strong>Overview</strong> (or <strong>Integration</strong> → <strong>Webhooks</strong>).</li>
+<li>Open <strong>Webhooks</strong> tab.</li>
+<li>Enter callback URL → <strong>Set</strong> / <strong>Save</strong>.</li>
+<li>Enable events you need:<ul>
+<li><strong>Inbound messages</strong> (required for this agent)</li>
+<li><strong>Delivery / read</strong> (optional, for status tracking)</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>Note:</strong> Gupshup recommends responding to webhooks with HTTP <strong>200</strong> and an <strong>empty body</strong>. A JSON or text body in the response can cause unintended auto-replies to users. When you migrate the backend to Gupshup, use <code>res.status(200).end()</code>.</p>
+</blockquote>
+<h3>D3. Test webhook</h3>
+<ol>
+<li>Start backend: <code>cd backend &amp;&amp; npm install &amp;&amp; node server.js</code></li>
+<li>Send a WhatsApp message <strong>to your business number</strong> from a personal phone.</li>
+<li>Check backend logs for inbound payload.</li>
+<li>Confirm the message appears in Gupshup’s message/logs UI.</li>
+</ol>
+<hr>
+<h2>Part E — Message templates (first contact / outside 24h)</h2>
+<p>WhatsApp requires <strong>approved templates</strong> to message users who have not messaged you in the last 24 hours.</p>
+<ol>
+<li>In Gupshup dashboard, open <strong>Templates</strong> for your app.</li>
+<li>Create a template (e.g. utility greeting) → submit for WhatsApp approval.</li>
+<li>After approval, copy the template <strong>ID</strong> (UUID), not only the friendly name.</li>
+<li>Set <code>GUPSHUP_TEMPLATE_WELCOME</code> in <code>.env</code> or pass <code>templateId</code> to <code>POST /api/users/welcome</code> after backend migration.</li>
+</ol>
+<p>See <a href="https://docs.gupshup.io/docs/template-messages">Gupshup template messages</a>.</p>
+<hr>
+<h2>Part F — Backend environment variables</h2>
+<p>Add to <code>backend/.env</code> (replace placeholders after Gupshup + Meta setup):</p>
+<pre><code class="hljs plaintext"># Gupshup Configuration
+GUPSHUP_API_KEY=your-gupshup-api-key
+GUPSHUP_SOURCE=15557106411
+GUPSHUP_APP_NAME=YourAppName
+GUPSHUP_TEMPLATE_WELCOME=template-uuid-from-dashboard
+
+# Admin WhatsApp for escalation alerts (digits only, country code, no +)
+ADMIN_WHATSAPP_NUMBER=919876543210
+
+# Public HTTPS base URL (required for webhooks + outbound media URLs)
+PUBLIC_URL=https://your-ngrok-or-production-url
+
+# Grok API (unchanged)
+GROK_API_KEY=your-grok-api-key
+
+# Database (unchanged)
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/healthagent
+
+PORT=3000</code></pre><p><strong>Remove WATI variables</strong> after migration is complete:</p>
+<ul>
+<li><code>WATI_API_BASE_URL</code></li>
+<li><code>WATI_API_TOKEN</code></li>
+<li><code>WATI_TENANT_ID</code></li>
+<li><code>WATI_CHANNEL_PHONE</code></li>
+</ul>
+<p>Update <code>render.yaml</code> production env vars to use <code>GUPSHUP_*</code> instead of <code>WATI_*</code>.</p>
+<hr>
+<h2>Part G — Admin escalation notifications</h2>
+<p>The backend can WhatsApp-alert an admin on safety escalations.</p>
+<ol>
+<li>Set <code>ADMIN_WHATSAPP_NUMBER</code> (digits only, with country code).</li>
+<li>Admin must <strong>message your business number</strong> at least once to open a <strong>24-hour session</strong> (or you send them an approved template first).</li>
+<li>Trigger a test: user sends a message containing “emergency” → admin should receive the alert.</li>
+</ol>
+<hr>
+<h2>Verification checklist</h2>
+<h3>Meta / Facebook</h3>
+<ul>
+<li><input type="checkbox" disabled=""> Meta Business Manager created</li>
+<li><input type="checkbox" disabled=""> Business verification submitted (and approved for production)</li>
+<li><input type="checkbox" disabled=""> WABA created or linked</li>
+<li><input type="checkbox" disabled=""> Business phone number verified (SMS or call)</li>
+<li><input type="checkbox" disabled=""> Display name approved or pending (tracked in WhatsApp Manager)</li>
+</ul>
+<h3>Gupshup</h3>
+<ul>
+<li><input type="checkbox" disabled=""> Gupshup account created and email verified</li>
+<li><input type="checkbox" disabled=""> WhatsApp app <strong>Go Live</strong> / FB registration completed</li>
+<li><input type="checkbox" disabled=""> API key, app name, and source number documented</li>
+<li><input type="checkbox" disabled=""> Callback URL set to <code>https://.../api/webhook</code></li>
+<li><input type="checkbox" disabled=""> At least one template <strong>approved</strong> (for welcome / cold outreach)</li>
+<li><input type="checkbox" disabled=""> Wallet/billing configured if required by your plan</li>
+</ul>
+<h3>This project</h3>
+<ul>
+<li><input type="checkbox" disabled=""> <code>backend/.env</code> updated with <code>GUPSHUP_*</code> variables</li>
+<li><input type="checkbox" disabled=""> <code>PUBLIC_URL</code> matches ngrok or production host</li>
+<li><input type="checkbox" disabled=""> Backend running; test inbound message received</li>
+<li><input type="checkbox" disabled=""> Test outbound reply from agent or admin dashboard</li>
+<li><input type="checkbox" disabled=""> <code>ADMIN_WHATSAPP_NUMBER</code> tested for escalation (optional)</li>
+</ul>
+<hr>
+<h2>Important operational notes</h2>
+<h3>24-hour session window</h3>
+<ul>
+<li><strong>Within 24h</strong> after the user’s last message: send free-form session messages (text, media).</li>
+<li><strong>Outside 24h</strong>: use <strong>template messages</strong> only.</li>
+</ul>
+<h3>Migrating from another BSP (e.g. WATI)</h3>
+<ul>
+<li>Disable <strong>two-factor authentication</strong> on the number at the old provider before migrating via Gupshup embedded signup.</li>
+<li>Plan a cutover window: update webhook URL, env vars, and disable the old provider webhook to avoid duplicate processing.</li>
+</ul>
+<h3>Outbound media (videos from admin dashboard)</h3>
+<ul>
+<li>Gupshup sends media using a <strong>public HTTPS URL</strong> in the API payload (not multipart upload like WATI).</li>
+<li>Ensure <code>PUBLIC_URL</code> serves <code>/uploads/...</code> over HTTPS so Gupshup can fetch the file.</li>
+</ul>
+<h3>India data localization (if applicable)</h3>
+<ul>
+<li>During onboarding, Gupshup may prompt for <strong>data storage region</strong> (e.g. India).</li>
+<li>Choose the region that matches your compliance requirements; this is set at signup, not in application code.</li>
+</ul>
+<hr>
+<h2>Troubleshooting</h2>
+<h3>“Continue with Facebook” popup blocked</h3>
+<ul>
+<li>Enable pop-ups for <code>gupshup.io</code> and <code>facebook.com</code>.</li>
+<li>Try another browser or disable strict blockers.</li>
+</ul>
+<h3>Cannot create WABA — business not verified</h3>
+<ul>
+<li>Complete Meta <strong>Business verification</strong> in Security Center.</li>
+<li>Wait for approval before expecting full API access.</li>
+</ul>
+<h3>Phone verification fails</h3>
+<ul>
+<li>Number still registered on WhatsApp mobile app → delete account from app or use a different number.</li>
+<li>Try <strong>Phone call</strong> instead of SMS for landlines.</li>
+<li>Ensure country code matches the physical number.</li>
+</ul>
+<h3>Webhook not receiving messages</h3>
+<ul>
+<li>Callback URL must be <strong>HTTPS</strong> and publicly reachable.</li>
+<li>Confirm URL in Gupshup matches running backend (<code>/api/webhook</code>).</li>
+<li>Restart ngrok; update URL if the subdomain changed.</li>
+<li>Return <strong>200</strong> with empty body from webhook handler.</li>
+</ul>
+<h3>API errors (401 / invalid apikey)</h3>
+<ul>
+<li>Regenerate or copy API key from app <strong>Settings</strong>.</li>
+<li>Use the app-level key tied to the live WhatsApp app, not an unrelated wallet key (unless your setup uses wallet-level keys).</li>
+</ul>
+<h3>Messages send but user does not receive</h3>
+<ul>
+<li>Check template vs session rules (24h window).</li>
+<li>Check display name / number status in WhatsApp Manager.</li>
+<li>Review Gupshup delivery webhooks / message logs for <code>failed</code> events.</li>
+</ul>
+<h3>Display name rejected</h3>
+<ul>
+<li>Use legal or well-known brand name; avoid generic words (“Support”, “Test”).</li>
+<li>Align with website and Meta business name.</li>
+<li>Resubmit in WhatsApp Manager after fixing the profile.</li>
+</ul>
+<hr>
+<h2>Support resources</h2>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Gupshup docs</td>
+<td><a href="https://docs.gupshup.io">docs.gupshup.io</a></td>
+</tr>
+<tr>
+<td>Gupshup dev support (callback issues on some plans)</td>
+<td><a href="mailto:dev-support@gupshup.io">dev-support@gupshup.io</a></td>
+</tr>
+<tr>
+<td>Meta Business Help</td>
+<td><a href="https://www.facebook.com/business/help">business.facebook.com/business/help</a></td>
+</tr>
+<tr>
+<td>WhatsApp display names</td>
+<td><a href="https://developers.facebook.com/docs/whatsapp/display-names">developers.facebook.com/docs/whatsapp/display-names</a></td>
+</tr>
+<tr>
+<td>Migration plan (WATI → Gupshup code)</td>
+<td>See prior architecture notes / <code>GUPSHUP_MIGRATION</code> when added</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Quick reference — what you need on day one</h2>
+<ol>
+<li><strong>Meta Business Manager</strong> (verified business)</li>
+<li><strong>WABA</strong> + <strong>verified business phone number</strong></li>
+<li><strong>Gupshup live app</strong> with <strong>API key</strong>, <strong>source</strong>, <strong>app name</strong></li>
+<li><strong>Callback URL</strong> → <code>https://&lt;host&gt;/api/webhook</code></li>
+<li><strong>Approved template UUID</strong> for welcome messages</li>
+<li><strong><code>backend/.env</code></strong> filled with <code>GUPSHUP_*</code>, <code>PUBLIC_URL</code>, <code>ADMIN_WHATSAPP_NUMBER</code></li>
+</ol>
+<p>Once these are in place, implement or enable the Gupshup client in the backend (replacing WATI) and run the testing checklist in the migration plan.</p>
+
+  </article>
+  <script>
+      window.addEventListener('load', function () {
+          if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+              window.MathJax.typesetPromise().catch(function (err) {
+                  console.warn('MathJax typeset failed:', err);
+              });
+          }
+          if (window.mermaid) {
+              try {
+                  window.mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+              } catch (e) {
+                  console.warn('Mermaid initialization failed:', e);
+              }
+          }
+      });
+  </script>
+</body>
+</html>
